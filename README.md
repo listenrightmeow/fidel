@@ -7,7 +7,7 @@ FIDEL is a light-weight, highly-performant and very opinionated MV**C** client f
 
 ### INSTALLATION
 
-You can install this fork from Bower directory or you can download and call this library in your web application appropriately.
+You can install this fork from Bower directly or you can download and call this library in your web application appropriately.
 
 ### INSTANTIATION
 
