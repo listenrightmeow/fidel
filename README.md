@@ -28,7 +28,7 @@ fidel.define('module', {});
 
 The define object is mutable and 100% customizable to end-usage patterns and preferences.
 
-### [COLLECTION]()
+### [COLLECTION](https://github.com/listenrightmeow/fidel/blob/v3/COLLECTION.md)
 
 #### COMMON PATTERNS
 
