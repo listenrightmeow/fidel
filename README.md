@@ -1,139 +1,96 @@
-# Fidel
-----
+# FIDEL
 
-Fidel is a simple controller for all of your javascript widgets. It is inspired from spine.js and backbone.js, but without any of the model/route stuff.
+FIDEL is a light-weight, highly-performant and very opinionated MV**C** client framework.
 
-It provides you some common features that you often need when you're creating a jQuery Plugin.
+* **define** : MVC without the **MV**
+* **collection** : Full MVC barebones framework
 
-## Creating your own Fidel plugin
+### INSTALLATION
 
-In order to create your plugin, you have to `define` it first, like this:
+You can install this fork from Bower directory or you can download and call this library in your web application appropriately.
 
-	var Modal = fidel.define('modal', {
-		... your code here ...
-	});
+### INSTANTIATION
 
-Once that's done, you now can instantiate it with the returned class (`Modal` in the example) or use the `modules` object of Fidel:
+new <define.memory.reference>({});
 
-	// Init class by var - JS Style
-	var modal = new Modal({ el, options });
-	
-	// Or init class from views object - JS Style
-	var modal = new fidel.views.modal({ el, options });
+#### options
 
-If you included the optional `jquery.fidel.js` file, you can even initialize it in the jQuery way:
+* **el** : element that Fidel anchors all class event delegation to. If no element is defined, Fidel creates an empty div to handle class delegation.
 
-	//init via jQuery (must include optional jquery.fidel.js file)
-	$().modal({ options });
-	
-Upon instantiation the property `el` will be set to the element passed.
-	
-## What does Fidel offers?
+### DEFINE
 
-Remember that Fidel gives you some structure to base your plugins based on common needs. Let's see what can it do for us!
+```js
+fidel.define('module', {});
+```
 
-### Init
+The define object is mutable and 100% customizable to end-usage patterns and preferences.
 
-If you define an `init` function within your plugin, Fidel will call that function upon instantiation. You normally use that to create some structure, bind some events and get ready.
+### [COLLECTION]()
 
-	var Modal = fidel.define('modal', {
-		init: function(){
-			this.open = false;
+#### COMMON PATTERNS
+
+* **defaults** : class constants merged or created at instantiation
+* **elements** : key/pair hoisting for string represented DOM selectors, children of this object are not cached
+* **init** : optional function that is ran at instantiation
+
+### RESERVED METHODS/PROPERTIES
+
+```js
+var Fidel = fidel.define('fidel', {});
+var fidel = new Fidel({ el : $('body') });
+```
+
+```js
+fidel.destroy();
+```
+* **destroy** : empties instantiating element for class, pragmatically unbinds all event listeners assigned to namespace and emits a 'destroy' event for pragmatic cleanup.
+
+```js
+this.emit('event', data, namespaced);
+```
+```js
+fidel.on('event', function(event, data) {});
+```
+* **emit** : pragmatically emit custom event to keep classes lean.  pass data as a string or object. namespaced will emit the event with the name of the class namespace appended to the end of the event label. namespaced is optional.
+
+```js
+var Fidel = fidel.define('fidel', {
+	result : fn(){},
+	trigger : fn(){}
+});
+
+var fidel = new Fidel({
+	el : $('body'),
+	filter : {
+		before : {
+			result : ['trigger']
 		}
-	});
-	
-First parameter is the name of your plugin, and the second is a plain object with your plugin's code.	
-	
-### Default values
+	}
+});
+```
+* **filter** : an activerecord-like callback, before or after, attached to a class method. in the example, result will be fired before trigger is executed.
 
-In order to make your plugin as customisable as possible, you often define some options but you don't want the developer to be providing all possible options with the values, do you? Fidel will handle that:
+```js
+fidel.on('event.namespace.label', function(event, data) {});
+```
+```js
+this.emit('event', { key : value }, '.namespace.label');
+```
+* **on** : anchor a handler function to a pre-defined fidel.emit call. namespaces is optional.
 
-	var Modal = fidel.define('modal', {
-		defaults : {
-			overlayOpacity: 1,
-			closeOnEsc: true
-		}
-	});
-	
-Now, when you instantiate it:
+* **one** : see **on** above. after this event is called once, it is handler is destroyed.
 
-	var modal = new Modal({
-		overlayOpacity: 0.5
-	});
-	
-Inside of your plugin functions you can access all those options inside of `this` so, in the previous example:
+```js
+var private = function() {};
 
-	this.overlayOpacity; // 0.5 overwritten at instantiation
-	this.closeOnEsc; // true which is the default value
-	
-#### Overwriting defaults
+this.proxy(private);
+```
+* **proxy** : avoid calling private or nested object methods with call/apply with scope association to the instantiated class.
 
-Fidel stores it defaults in a Global an accessible property, so it's really easy to you to change a setting for all future plugins being created. So, let's say you don't want `closeOnEsc` to be `true` by default in your application. You'd do something like this:
+```js
+var fidel = new Fidel({ el : $('html') });
+this.setElement($('body'));
+```
+* **setElement** : change or override the fidel element it is instantiated with.
 
-	fidel.modules.modal.defaults.closeOnEsc = false;
-	
-Note that `modal` should be exchanged by your plugin's name. From now on, all the instances you create of your plugin, will have `closeOnEsc` as `false` instead of `true` by default.		
-	
-### Events
-
-In a similar way of Backbone Views, Fidel will bind to events passed within the element you provide on instantiation:
-
-	var Modal = fidel.define('modal', {
-		events: {
-			'keydown' : 'onKeydown'
-		},
-		onKeydown : function(){
-			// this will be called on keydown
-			// I can call this.close() from here!
-		},
-		close: function(){
-		}
-	});
-	
-So, as you can see,	 the key is the **event type** and the value is **the function which will be called**. The scope **will be** mantained so `this` will still be your plugin object.
-
-You can also provide a selector on the event to be matched.
-
-#### Fidel events
-
-Fidel does fire a couple of events so you can perform extra actions in certain situations. 
-
-- **`FidelPreInit`**: Fires *before* the `init` function of your plugin executes.
-- **`FidelPostInit`**: Fires *after* the `init` function of your plugin executes.
-
-These events are fired on the `body` element of the DOM, so make sure to bind to that element if you intend to use these. The events receive the plugin as parameter:
-
-	$('body').on('FidelPreInit', function(event, plugin){
-		plugin.doSomethingExtra();
-	});
-
-### Destroy
-
-You can destroy an instance of your Fidel plugin by calling `destroy`. This will empty the `el`ement and will also unbind all namespaced events on the element.
-
-If you want to extend the `destroy` actions, you should do something like this:
-
-	var Modal = fidel.define('modal', {
-		destroy: function(){
-			// additional actions
-			Fidel.prototype.destroy.call(this); // Calling to the original method
-		}
-	});
-	
-### Data-actions
-
-Fidel allows you to bind actions to clicks
-
-### Convinience methods
-
-| Method        | Description         |
-| ------------- |-------------|
-| `this.find(value)`   | Is the same as `this.el.find`.
-| `this.proxy(function)` | Is a shortcut of using jQuery's proxy passing plugin as `this`.
-| `this.on(eventName, function)` | Is a shortcut of using `this.el.on`.
-| `this.one(eventName, function)` | Is a shortcut of using `this.el.one`.
-| `this.emit(eventName, data, namespaced)` | Is a shortcut of using `this.el.trigger` and allows you to define if the fired event is namespaced or not.
-| `this.hide` | This will hide the `el`ement and the defined views as well.
-| `this.show` | This will show the `el`ement and the defined views as well.
-
-Note that all event bindings created with these convinience methods are namespaced with `.fidel` and those will be unbinded upon `destroy`.
+* **onPreInit**/**onPostInit** : hooks to implement fidel plugins.
