@@ -14,7 +14,7 @@ You can install this fork from Bower directory or you can download and call this
 ```js
 var Fidel = fidel.define('fidel', {});
 var fidel = new Fidel({ el : $('body') });
-```js
+```
 
 #### options
 
